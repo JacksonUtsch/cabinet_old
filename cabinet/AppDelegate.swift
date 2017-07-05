@@ -8,19 +8,22 @@
 
 import Cocoa
 
+public let dev = true
+public let screenSize = NSScreen.main()!.frame
+
 @NSApplicationMain
 class AppDelegate: NSObject, NSApplicationDelegate {
 
-
-
     func applicationDidFinishLaunching(_ aNotification: Notification) {
-        // Insert code here to initialize your application
+        
+        /* WINDOW SETTINGS */
+        NSApp.windows.first?.titleVisibility = NSWindowTitleVisibility.hidden // Removes title
+        NSApp.windows.first?.titlebarAppearsTransparent = true // Title bar transparency
+        NSApp.windows.first?.setIsZoomed(true) // Fullscreen on launch
+        NSApp.windows.first?.backgroundColor = Design.window.color
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
         // Insert code here to tear down your application
     }
-
-
 }
-

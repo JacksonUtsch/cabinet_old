@@ -12,8 +12,11 @@ class ViewController: NSViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view.
+        if dev == true{ print("Screen Size: \(screenSize)") }
+        
+        // get default directory (NSURL)
+        // get list of files at this point
+        // display based on viewing sys (organize by ..)
     }
 
     override var representedObject: Any? {
@@ -21,7 +24,4 @@ class ViewController: NSViewController {
         // Update the view, if already loaded.
         }
     }
-
-
 }
-
