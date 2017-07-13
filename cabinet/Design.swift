@@ -9,7 +9,20 @@
 import DynamicColor
 
 struct Design {
+    
     struct window {
         static let color = colors.blue.darkened()
     }
+    
+    struct fileViewer {
+        static let color = colors.gray
+        
+        struct folder {
+            static let selectAlpha:CGFloat = 0.4
+            static let selectCornerRadius:CGFloat = 4
+        }
+    }
 }
+
+//preset themes
+//sizing options
