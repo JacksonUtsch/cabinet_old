@@ -26,7 +26,6 @@ struct defaultsKeys {
     }
     struct folder {
         static let imageSize = "FolderImageSize"
-        static let spacing = "FolderSpacing"
     }
 }
 
@@ -48,25 +47,20 @@ public class layout {
                 defaults.set(NSStringFromSize(imageNSSize), forKey: defaultsKeys.folder.imageSize)
             }
         }
-        static var spacingNSSize:NSSize! {
-            didSet {
-                defaults.set(NSStringFromSize(spacingNSSize), forKey: defaultsKeys.folder.spacing)
-            }
-        }
         func imageSize() -> NSSize {
             return folder.imageNSSize
         }
         func spacingSize() -> NSSize {
-            return folder.spacingNSSize
+            return NSSize(width: folder.imageNSSize.width * 0.6, height: folder.imageNSSize.width)
         }
-        func folderSize() -> NSSize {
-            return NSSize(width: folder.imageNSSize.width + folder.spacingNSSize.width, height: folder.imageNSSize.height + folder.spacingNSSize.height)
+        func viewSize() -> NSSize {
+            return NSSize(width: folder.imageNSSize.width + spacingSize().width, height: folder.imageNSSize.height + spacingSize().height)
         }
         func font() -> NSFont {
-            return NSFont(name: general.fontName, size: self.folderSize().width / 7)!
+            return NSFont(name: general.fontName, size: viewSize().width / 7)!
         }
         func textSize() -> NSSize {
-            return NSSize(width: self.folderSize().width, height: font().capHeight * 2)
+            return NSSize(width: viewSize().width, height: font().capHeight * 2)
         }
     }
     
@@ -96,17 +90,6 @@ public class layout {
             folder.imageNSSize = imageSize // ambiguos didSet use
         } else {
             folder.imageNSSize = NSSize(width: screenSize.width / 20, height: (screenSize.width / 20) * 0.72)
-        }
-        
-        let spacingString = defaults.string(forKey: defaultsKeys.folder.spacing)
-        if spacingString != nil {
-            let spacingSize = NSSizeFromString(spacingString!)
-            if spacingSize == NSSize(width: 0, height: 0) {
-                Swift.print("folderSpacing in userDefaults may contain improper data.")
-            }
-            folder.spacingNSSize = spacingSize // ambiguos didSet use
-        } else {
-            folder.spacingNSSize = NSSize(width: folder.imageNSSize.width * 0.6, height: folder.imageNSSize.width)
-        }
+        }        
     }
 }

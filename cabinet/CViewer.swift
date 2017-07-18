@@ -19,12 +19,11 @@ class CViewer : NSView {
     var files:CFiles!
     var hierarchy:CPath!
     
-    override init(frame frameRect: NSRect) {
+    init(frame frameRect: NSRect, path:URL) {
         super.init(frame: frameRect)
+        self.path = path
         self.wantsLayer = true
         self.layer?.backgroundColor = colors.gray.cgColor
-        
-        path = URL(fileURLWithPath: documentPath)
     }
     
     required init?(coder: NSCoder) {

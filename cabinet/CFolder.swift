@@ -21,16 +21,16 @@ import Cocoa
  */
 
 
-class CFolder : NSButton {
+class CFolder : NSImageView {
     
-    var path:URL! {
+    private var path:URL! {
         willSet {
             previousLocation = path
-            Swift.print("PREVIOUS PATH: " + path.absoluteString)
+            if dev == true { Swift.print("PREVIOUS PATH: " + path.absoluteString) }
         }
         
         didSet {
-            Swift.print("NEW PATH: " + path.absoluteString)
+            if dev == true { Swift.print("NEW PATH: " + path.absoluteString) }
             do { try FileManager.default.moveItem(at: previousLocation!, to: path) } catch { Swift.print(error) }
         }
     }
@@ -47,47 +47,45 @@ class CFolder : NSButton {
         }
     }
     
-    private var folderHighlight:NSView!
+    private var downLocation = NSPoint(x: 0, y: 0)
 
-    var folderText:NSText!
+    var folderHighlight:NSView!
+    var folderText:NSTextField!
+    var isRenaming:Bool = false
+    
+    private var dummyFolder:CFolder!
 
     init(frame frameRect: NSRect, url:URL) {
         self.path = url
         super.init(frame: frameRect)
         
         self.acceptsTouchEvents = true
-        self.isBordered = false
-        self.setButtonType(.momentaryChange)
         
         #imageLiteral(resourceName: "folder-light").size = appLayout.folders.imageSize()
         self.image = #imageLiteral(resourceName: "folder-light")
         
         let textSize = appLayout.folders.textSize()
-        
-        
         let fontAttributes = [NSFontAttributeName: appLayout.folders.font()]
         let wid = min((path.lastPathComponent as NSString).size(withAttributes: fontAttributes).width, frameRect.width)
         
-        folderHighlight = NSView(frame: NSRect(x: (frameRect.width - wid)/2, y: frameRect.height - (appLayout.folders.font().capHeight * 2), width: wid, height: textSize.height - textSize.height / 4))
+        folderHighlight = NSView(frame: NSRect(x: (frameRect.width - wid)/2, y: (appLayout.folders.font().capHeight * 2 - (textSize.height - textSize.height / 4)), width: wid, height: textSize.height - textSize.height / 4))
         folderHighlight.wantsLayer = true
-        folderHighlight.layer?.backgroundColor = colors.blue.lighter().cgColor
+        folderHighlight.layer!.backgroundColor = colors.blue.lighter().cgColor
+        folderHighlight.layer!.cornerRadius = Design.fileViewer.folder.selectCornerRadius
         folderHighlight.alphaValue = Design.fileViewer.folder.selectAlpha
         folderHighlight.isHidden = true
-        folderHighlight.layer?.cornerRadius = Design.fileViewer.folder.selectCornerRadius
-        
         self.addSubview(folderHighlight)
 
-        folderText = NSText(frame: NSRect(origin: NSPoint(x: 0, y: frameRect.height - appLayout.folders.font().capHeight * 2), size: textSize))
-        folderText.string = path.lastPathComponent
-        folderText.isSelectable = false
-        folderText.backgroundColor = NSColor.clear
-        folderText.textColor = NSColor.white
+        folderText = NSTextField(frame: NSRect(origin: NSPoint(x: 0, y: 0), size: textSize))
+        folderText.stringValue = path.lastPathComponent
         folderText.alignment = .center
         folderText.font = appLayout.folders.font()
         folderText.textColor = colors.fiord
-        // change carot / cursor
-        self.addSubview(folderText)
-        
+        folderText.cell!.usesSingleLineMode = true
+        folderText.isBezeled = false
+        folderText.isEditable = false
+        folderText.drawsBackground = false
+        self.addSubview(folderText) // change carot/cursor
         
         let renameClick = NSClickGestureRecognizer(target: self, action: #selector(self.renaming(sender:)))
         renameClick.numberOfClicksRequired = 2
@@ -97,7 +95,7 @@ class CFolder : NSButton {
         openClick.numberOfClicksRequired = 2
         self.addGestureRecognizer(openClick)
         
-        let selectClick = NSClickGestureRecognizer(target: self, action: #selector(self.selectFolder))
+        let selectClick = NSClickGestureRecognizer(target: self, action: #selector(self.selectFolder(sender:)))
         selectClick.numberOfClicksRequired = 1
         self.addGestureRecognizer(selectClick)
     }
@@ -107,38 +105,81 @@ class CFolder : NSButton {
     }
     
     func renaming(sender:NSClickGestureRecognizer) {
-        if let txt = sender.view as? NSText {
-            txt.isEditable = true
-            txt.selectWord(txt.string)
-            txt.window?.makeFirstResponder(txt)
-            
-//            var newP = path.absoluteString
-//            let range:ClosedRange = (newP.characters.count - path.lastPathComponent.c)...(newP.characters.count)
-//            newP.removeSubrange(Range(uncheckedBounds: (3,5)))
-//            for _ in 1...path.lastPathComponent.characters.count {
-//                newP.remove(at: newP.characters.count - 1) // same char error ??????!??!?!
-//            }
-            
-//            let newP = path.deletingLastPathComponent().absoluteString + "/grid" + "/solitaire"
-//            path = URL(string: "file:///Users/jutechs/Documents/projects/software/grid/solitaire/")
-//            Swift.print(path.absoluteString)
-        }
+        folderText.isEditable = true
+        folderText.currentEditor()?.selectWord(folderText.stringValue)
+        folderText.window?.makeFirstResponder(folderText)
+        selected = false
+        isRenaming = true
     }
     
     func rename() {
+        // renames folder
+        let component = folderText.stringValue.replacingOccurrences(of: " ", with: "%20")
+        let newP = path.deletingLastPathComponent().absoluteString + component + "/"
+        if path.absoluteString != newP {
+            path = URL(string: newP)
+        }
+
+        let textSize = appLayout.folders.textSize()
+        let fontAttributes = [NSFontAttributeName: appLayout.folders.font()]
+        let wid = min((folderText.stringValue as NSString).size(withAttributes: fontAttributes).width, frame.width)
+
+        folderHighlight.removeFromSuperview()
+        folderHighlight = NSView(frame: NSRect(x: (frame.width - wid)/2, y: (appLayout.folders.font().capHeight * 2 - (textSize.height - textSize.height / 4)), width: wid, height: textSize.height - textSize.height / 4))
+        folderHighlight.wantsLayer = true
+        folderHighlight.layer!.backgroundColor = colors.blue.lighter().cgColor
+        folderHighlight.layer!.cornerRadius = Design.fileViewer.folder.selectCornerRadius
+        folderHighlight.layer!.zPosition = -1
+        folderHighlight.alphaValue = Design.fileViewer.folder.selectAlpha
+        folderHighlight.isHidden = true
+        addSubview(folderHighlight)
         
+        // assures text in is front
+        folderText.removeFromSuperview()
+        addSubview(folderText)
+        
+        isRenaming = false        
     }
     
-    func selectFolder() {
-        if flags.shift == false && flags.command == false {
-            for case let subview as CFolder in (superview?.subviews)! { // deselects views
-                subview.selected = false
-            }
+    override func mouseDown(with event: NSEvent) {
+        downLocation = event.locationInWindow
+        dummyFolder = CFolder(frame: self.frame, url: self.path)
+    }
+    
+    override func mouseDragged(with event: NSEvent) { // check selected, drag multiple files
+        self.superview?.addSubview(dummyFolder)
+        dummyFolder.frame.origin = NSPoint(x: event.locationInWindow.x - downLocation.x + frame.origin.x, y: downLocation.y - event.locationInWindow.y + 100)
+        dummyFolder.alphaValue = 0.5
+    }
+    
+    override func mouseUp(with event: NSEvent) {
+        if dummyFolder != nil {
+            dummyFolder.removeFromSuperview()
+            dummyFolder = nil
         }
-        selected = true
+    }
+    
+    func selectFolder(sender:NSClickGestureRecognizer) {
+        if imageRect().contains(sender.location(in: self)) || folderHighlight.frame.contains(sender.location(in: self)) {
+            if flags.shift == false && flags.command == false {
+                for case let subview as CFolder in (superview?.subviews)! { // deselects views
+                    subview.selected = false
+                }
+            }
+            selected = true
+        } else {
+            selected = false
+        }
     }
     
     func open() {
         (self.superview as! CFiles).path = path
+    }
+    
+    func imageRect() -> NSRect {
+        return NSRect(origin: CGPoint(x: (frame.width - image!.size.width) / 2, y: (frame.height - image!.size.height) / 2), size: image!.size)
+    }
+    func textRect() -> NSRect {
+        return NSRect(x: (frame.width - folderHighlight.frame.width) / 2, y: frame.height - (folderHighlight.frame.origin.y + folderHighlight.frame.height), width: folderHighlight.frame.width, height: folderHighlight.frame.height)
     }
 }
