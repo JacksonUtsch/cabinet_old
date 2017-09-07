@@ -12,3 +12,4 @@ class Settings:NSView {
     private var optionPane:NSScrollView!
     private var exampleView:NSView!
 }
+

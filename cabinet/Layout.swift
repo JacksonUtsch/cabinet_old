@@ -21,46 +21,103 @@ import Cocoa
 let defaults = UserDefaults.standard
 
 struct defaultsKeys {
+    struct application {
+        static let font = "appFont"
+    }
     struct general {
         static let fontName = "FontName"
+        static let defaultPath = "defaultPath"
     }
-    struct folder {
+    struct cfolder {
+        static let size = "cfolderSize"
         static let imageSize = "FolderImageSize"
+    }
+}
+
+public struct des {
+    
+    struct application {
+        static var font:String! {
+            didSet {
+                defaults.set(font, forKey: defaultsKeys.application.font)
+            }
+        }
+    }
+    
+    struct cfolder {
+        static var size:NSSize! {
+            didSet {
+                defaults.set(size, forKey: defaultsKeys.cfolder.size)
+            }
+        }
+    }
+    
+    init() {
+        // retrieve values, if none present, set defaults
     }
 }
 
 public class layout {
     
-    var folders = folder()
+    var general = generals()
+    var cpath = cpaths()
+    var cfolder = cfolders()
+    var ctab = ctabs()
     
-    struct general {
+    struct generals {
         static var fontName:String! {
             didSet {
                 defaults.set(fontName, forKey: defaultsKeys.general.fontName)
             }
         }
+//        static var defaultURL:URL! {
+//            didSet {
+//                defaults.set(defaultURL.absoluteString, forKey: defaultsKeys.general.defaultPath)
+//            }
+//        }
+        func font() -> String {
+            return generals.fontName
+        }
+//        func defaultPath() -> URL {
+//            return generals.defaultURL
+//        }
     }
     
-    struct folder {
+    struct cpaths {
+        func height() -> CGFloat {
+            return screenSize.width * 0.02
+        }
+        func font() -> NSFont {
+            return NSFont(name: "Avenir Next", size: 10)!
+        }
+    }
+    
+    struct cfolders {
         static var imageNSSize:NSSize! {
             didSet {
-                defaults.set(NSStringFromSize(imageNSSize), forKey: defaultsKeys.folder.imageSize)
+                defaults.set(NSStringFromSize(imageNSSize), forKey: defaultsKeys.cfolder.imageSize)
             }
         }
         func imageSize() -> NSSize {
-            return folder.imageNSSize
+            return cfolders.imageNSSize
         }
         func spacingSize() -> NSSize {
-            return NSSize(width: folder.imageNSSize.width * 0.6, height: folder.imageNSSize.width)
+            return NSSize(width: cfolders.imageNSSize.width * 0.6, height: cfolders.imageNSSize.width)
         }
         func viewSize() -> NSSize {
-            return NSSize(width: folder.imageNSSize.width + spacingSize().width, height: folder.imageNSSize.height + spacingSize().height)
+            return NSSize(width: cfolders.imageNSSize.width + spacingSize().width, height: cfolders.imageNSSize.height + spacingSize().height)
         }
         func font() -> NSFont {
-            return NSFont(name: general.fontName, size: viewSize().width / 7)!
+            return NSFont(name: generals.fontName, size: viewSize().width / 7)!
         }
         func textSize() -> NSSize {
             return NSSize(width: viewSize().width, height: font().capHeight * 2)
+        }
+    }
+    
+    struct ctabs {
+        func height() -> CGFloat {
+            return screenSize.height * 0.03
         }
     }
     
@@ -73,23 +130,30 @@ public class layout {
         
         let fontName = defaults.string(forKey: defaultsKeys.general.fontName)
         if fontName != nil {
-            general.fontName = fontName
+            generals.fontName = fontName
         } else {
-            general.fontName = "Avenir"
+            generals.fontName = "Avenir Next"
         }
+        
+//        let defaultString = defaults.string(forKey: defaultsKeys.general.fontName)
+//        if defaultString != nil {
+//            generals.defaultURL = URL(string: defaultString!)
+//        } else {
+//            generals.defaultURL = URL(fileURLWithPath: documentPath)
+//        }
     }
     
     private func evalFolder() {
         
-        let imageString = defaults.string(forKey: defaultsKeys.folder.imageSize)
+        let imageString = defaults.string(forKey: defaultsKeys.cfolder.imageSize)
         if imageString != nil {
             let imageSize = NSSizeFromString(imageString!)
             if imageSize == NSSize(width: 0, height: 0) {
                 Swift.print("folderImage in userDefaults may contain improper data.")
             }
-            folder.imageNSSize = imageSize // ambiguos didSet use
+            cfolders.imageNSSize = imageSize // ambiguos didSet use
         } else {
-            folder.imageNSSize = NSSize(width: screenSize.width / 20, height: (screenSize.width / 20) * 0.72)
+            cfolders.imageNSSize = NSSize(width: screenSize.width / 20, height: (screenSize.width / 20) * 0.72)
         }        
     }
 }

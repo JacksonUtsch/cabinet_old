@@ -8,8 +8,9 @@
 
 import Cocoa
 
-public let dev = true
-public let screenSize = NSScreen.main()!.frame
+let dev = true
+
+let screenSize = NSScreen.main()!.frame
 
 struct flags {
     static var shift = false
@@ -29,7 +30,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.windows.first?.representedURL = nil // Hides file image in title bar
         NSApp.windows.first?.setIsZoomed(true) // Fullscreen on launch
         NSApp.windows.first?.acceptsMouseMovedEvents = true
-        NSApp.windows.first?.backgroundColor = Design.window.color
+        NSApp.windows.first?.backgroundColor = themeColors().secondary
+        NSApp.windows.first?.minSize = NSSize(width: screenSize.width/3, height: screenSize.height/3)
         
         /* FLAGS */
         NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) {
@@ -53,6 +55,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationWillTerminate(_ aNotification: Notification) {
-        // Insert code here to tear down your application
+        // Save anything needed, possibly save undo list
     }
 }

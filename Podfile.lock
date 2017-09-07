@@ -1,0 +1,15 @@
+PODS:
+  - DynamicColor (3.3)
+  - PureLayout (3.0.2)
+
+DEPENDENCIES:
+  - DynamicColor
+  - PureLayout
+
+SPEC CHECKSUMS:
+  DynamicColor: 3cdaa1e01c16e93ba744e0630f768373e0fc7a7d
+  PureLayout: 4d550abe49a94f24c2808b9b95db9131685fe4cd
+
+PODFILE CHECKSUM: 7c74d067c94bed462ee47dba1f41f888fa2be356
+
+COCOAPODS: 1.2.1

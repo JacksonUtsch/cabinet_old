@@ -7,27 +7,60 @@
 //
 
 import Cocoa
+import PureLayout
 
+let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+
+/// Creates access to the root of application, many elements will rely of this.
+var VCRef:ViewController!
 var appLayout = layout()
-let documentPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
 
 class ViewController: NSViewController {
-
+    
+    var viewer:CViewer!
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         if dev == true{ print("Screen Size: \(screenSize)") }
+
+        VCRef = self
         
-        
-        let viewer = CViewer(frame: screenSize, path: URL(fileURLWithPath: documentPath + "/projects/software")) // CFiles(frame: screenSize, path: URL(fileURLWithPath: documentPath + "/projects/software"))
+        viewer = CViewer(frame: self.view.frame, path: URL(fileURLWithPath: documentsPath))
         self.view.addSubview(viewer)
         
-//        let pathView = CPath(frame: <#T##NSRect#>, path: <#T##URL#>)
+        /* AUTO LAYOUT */
+        viewer.autoMatch(.width, to: .width, of: view)
+        viewer.autoMatch(.height, to: .height, of: view)
+        viewer.autoPinEdgesToSuperviewEdges(with: .init(top: 0, left: 0, bottom: 0, right: 0), excludingEdge: .bottom)
     }
 }
 
+extension Bool {
+    
+    mutating func toggle() {
+        if self == true  {
+            self = false
+        } else {
+            self = true
+        }
+    }
+    
+    func toggled() -> Bool {
+        if self == true  {
+            return false
+        } else {
+            return true
+        }
+    }
+}
 
-
-
-
-//        let cp = CPath(frame: NSRect(x: 0, y: 0, width: screenSize.width, height: 100), path: URL(fileURLWithPath: documentPath + "/projects/software"))
-//        self.view.addSubview(cp)
+extension NSTextField {
+    func makeNormal() {
+        self.isBezeled = false
+        self.isEditable = false
+        self.isSelectable = false
+        self.isEditable = false
+        self.alignment = .center
+        self.font = NSFont(name: "Avenir Next", size: self.frame.height/2)
+    }
+}
